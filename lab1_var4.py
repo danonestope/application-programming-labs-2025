@@ -1,28 +1,30 @@
 def read_profiles():
-    """Читает анкеты из файла data.txt"""
+    """Считывание анкеток"""
     profiles = []
 
     try:
         with open('data.txt', 'r', encoding='utf-8') as file:
             content = file.read()
-
+        """Рзделяет на блоки по двойному переносу"""
         profile_blocks = content.split('\n\n')
 
         for block in profile_blocks:
-            lines = block.strip().split('\n')
+            lines = block.strip().split('\n') 
+            """Разделяет на блоки по переносу строки"""
             if len(lines) >= 6:
                 profile = {
                     'surname': lines[1].strip().split(": ")[-1],
                     'name': lines[2].strip().split(": ")[-1],
                     'gender': lines[3].strip().split(": ")[-1],
-                    'birth_date': lines[4].strip().split(": ")[-1],  # Просто сохраняем как строку
+                    'birth_date': lines[4].strip().split(": ")[-1],
                     'contact': lines[5].strip().split(": ")[-1],
                     'city': lines[6].strip().split(": ")[-1]
                 }
+                """Сохраняет это в profiles как строку, split'ом выделяем только данные человека"""
                 profiles.append(profile)
 
     except FileNotFoundError:
-        print("Ошибка: Файл data.txt не найден")
+        print("Ошибка")
         return []
     except Exception as e:
         print(f"Ошибка при чтении файла: {e}")
@@ -33,7 +35,6 @@ def read_profiles():
 
 def extract_year(birth_date_str):
     """Извлекает год из даты рождения (простая версия)"""
-    # Ищем 4 цифры подряд - это год
     import re
     year_match = re.search(r'\b(\d{4})\b', birth_date_str)
     if year_match:
@@ -45,8 +46,6 @@ def find_oldest_and_youngest(profiles):
     """Находит самого старого и самого молодого человека по году рождения"""
     if not profiles:
         return None, None
-
-    # Фильтруем профили с валидным годом рождения
     valid_profiles = []
     for profile in profiles:
         year = extract_year(profile['birth_date'])
@@ -56,7 +55,7 @@ def find_oldest_and_youngest(profiles):
     if not valid_profiles:
         return None, None
 
-    # Сортируем по году рождения (чем меньше год - тем старше человек)
+    """Сортировка только по дате"""
     sorted_profiles = sorted(valid_profiles, key=lambda x: extract_year(x['birth_date']))
 
     oldest = sorted_profiles[0]  # Самый маленький год = самый старый
@@ -66,7 +65,7 @@ def find_oldest_and_youngest(profiles):
 
 
 def print_profile(profile, label):
-    """Выводит анкету на экран"""
+    """Вывод анкет"""
     print(f"\n{label}:")
     print(f"Фамилия: {profile['surname']}")
     print(f"Имя: {profile['name']}")
@@ -75,10 +74,10 @@ def print_profile(profile, label):
     print(f"Контакт: {profile['contact']}")
     print(f"Город: {profile['city']}")
 
-    # Просто вычисляем примерный возраст по году
+    """Вычисляем возраст"""
     year = extract_year(profile['birth_date'])
     if year:
-        age = 2025 - year  # Примерный возраст
+        age = 2025 - year
         print(f"Примерный возраст: {age} лет")
 
 
