@@ -1,5 +1,11 @@
+<<<<<<< HEAD
 import re
 from datetime import datetime
+=======
+def read_profiles():
+    """Считывание анкеток"""
+    profiles = []
+>>>>>>> d0bb973c9edcaef2d54252df723b2cc6f202951f
 
 
 class Person:
@@ -49,6 +55,7 @@ def read_people_from_file(filename):
     try:
         with open(filename, 'r', encoding='utf-8') as file:
             content = file.read()
+<<<<<<< HEAD
 
         people = []
         profiles = content.strip().split('\n\n')
@@ -80,12 +87,35 @@ def read_people_from_file(filename):
 
     except FileNotFoundError:
         print(f"Ошибка: файл {filename} не найден")
+=======
+        """Рзделяет на блоки по двойному переносу"""
+        profile_blocks = content.split('\n\n')
+
+        for block in profile_blocks:
+            lines = block.strip().split('\n') 
+            """Разделяет на блоки по переносу строки"""
+            if len(lines) >= 6:
+                profile = {
+                    'surname': lines[1].strip().split(": ")[-1],
+                    'name': lines[2].strip().split(": ")[-1],
+                    'gender': lines[3].strip().split(": ")[-1],
+                    'birth_date': lines[4].strip().split(": ")[-1],
+                    'contact': lines[5].strip().split(": ")[-1],
+                    'city': lines[6].strip().split(": ")[-1]
+                }
+                """Сохраняет это в profiles как строку, split'ом выделяем только данные человека"""
+                profiles.append(profile)
+
+    except FileNotFoundError:
+        print("Ошибка")
+>>>>>>> d0bb973c9edcaef2d54252df723b2cc6f202951f
         return []
     except Exception as e:
         print(f"Ошибка при чтении файла: {e}")
         return []
 
 
+<<<<<<< HEAD
 def find_oldest_and_youngest(people):
     """Находит самого старого и самого молодого человека"""
     if not people:
@@ -93,18 +123,65 @@ def find_oldest_and_youngest(people):
 
     # Фильтруем людей с валидными датами
     people_with_dates = [p for p in people if p.get_birth_date_object()]
+=======
+
+def extract_year(birth_date_str):
+    """Извлекает год из даты рождения (простая версия)"""
+    import re
+    year_match = re.search(r'\b(\d{4})\b', birth_date_str)
+    if year_match:
+        return int(year_match.group(1))
+    return None
+
+
+def find_oldest_and_youngest(profiles):
+    """Находит самого старого и самого молодого человека по году рождения"""
+    if not profiles:
+        return None, None
+    valid_profiles = []
+    for profile in profiles:
+        year = extract_year(profile['birth_date'])
+        if year and 1900 <= year <= 2025:  # Простая проверка года
+            valid_profiles.append(profile)
+>>>>>>> d0bb973c9edcaef2d54252df723b2cc6f202951f
 
     if not people_with_dates:
         return None, None
 
+<<<<<<< HEAD
     # Сортируем по дате рождения
     people_sorted = sorted(people_with_dates, key=lambda p: p.get_birth_date_object())
+=======
+    """Сортировка только по дате"""
+    sorted_profiles = sorted(valid_profiles, key=lambda x: extract_year(x['birth_date']))
+>>>>>>> d0bb973c9edcaef2d54252df723b2cc6f202951f
 
     oldest = people_sorted[0]  # Первый в отсортированном списке (самый старый)
     youngest = people_sorted[-1]  # Последний в отсортированном списке (самый молодой)
 
     return oldest, youngest
 
+<<<<<<< HEAD
+=======
+
+def print_profile(profile, label):
+    """Вывод анкет"""
+    print(f"\n{label}:")
+    print(f"Фамилия: {profile['surname']}")
+    print(f"Имя: {profile['name']}")
+    print(f"Пол: {profile['gender']}")
+    print(f"Дата рождения: {profile['birth_date']}")
+    print(f"Контакт: {profile['contact']}")
+    print(f"Город: {profile['city']}")
+
+    """Вычисляем возраст"""
+    year = extract_year(profile['birth_date'])
+    if year:
+        age = 2025 - year
+        print(f"Примерный возраст: {age} лет")
+
+
+>>>>>>> d0bb973c9edcaef2d54252df723b2cc6f202951f
 def main():
     filename = "data.txt"
 
@@ -129,6 +206,7 @@ def main():
         print(f"  Дата рождения: {oldest.birth_date}")
 
 
+<<<<<<< HEAD
         print(f"\nСамый младший человек:")
         print(f"  {youngest}")
         print(f"  Дата рождения: {youngest.birth_date}")
@@ -140,4 +218,7 @@ def main():
 
 
 if __name__ == '__main__':
+=======
+if __name__ == "__main__":
+>>>>>>> d0bb973c9edcaef2d54252df723b2cc6f202951f
     main()
