@@ -1,9 +1,12 @@
 import re
+import sys
 from datetime import datetime
+from typing import List, Optional, Tuple
 
 
 class Person:
-    def __init__(self, last_name, first_name, gender, birth_date, contact, city):
+    def __init__(self, last_name: str, first_name: str, gender: str,
+                 birth_date: str, contact: str, city: str) -> None:
         self.last_name = last_name
         self.first_name = first_name
         self.gender = gender
@@ -11,7 +14,7 @@ class Person:
         self.contact = contact
         self.city = city
 
-    def get_birth_date_object(self):
+    def get_birth_date_object(self) -> Optional[datetime]:
         """Преобразует строку даты в объект datetime"""
         try:
             # Пробуем разные разделители
@@ -20,31 +23,37 @@ class Person:
                     day, month, year = map(int, self.birth_date.split(separator))
                     return datetime(year, month, day)
             return None
-        except:
-            return None
+        except (ValueError, AttributeError) as e:
+            raise ValueError(f"Неверный формат даты: {self.birth_date}") from e
 
-    def calculate_age(self):
+    def calculate_age(self) -> Optional[int]:
         """Вычисляет возраст"""
-        birth_date = self.get_birth_date_object()
-        if not birth_date:
-            return None
+        try:
+            birth_date = self.get_birth_date_object()
+            if not birth_date:
+                return None
 
-        today = datetime.now()
-        age = today.year - birth_date.year
+            today = datetime.now()
+            age = today.year - birth_date.year
 
-        # Проверяем, был ли уже день рождения в этом году
-        if today.month < birth_date.month or (today.month == birth_date.month and today.day < birth_date.day):
-            age -= 1
+            # Проверяем, был ли уже день рождения в этом году
+            if today.month < birth_date.month or (today.month == birth_date.month and today.day < birth_date.day):
+                age -= 1
 
-        return age
+            return age
+        except Exception as e:
+            raise ValueError(f"Ошибка при вычислении возраста для {self.last_name} {self.first_name}") from e
 
-    def __str__(self):
-        age = self.calculate_age()
-        age_str = f", {age} лет" if age else ""
-        return f"{self.last_name} {self.first_name}{age_str}, {self.city}"
+    def __str__(self) -> str:
+        try:
+            age = self.calculate_age()
+            age_str = f", {age} лет" if age else ""
+            return f"{self.last_name} {self.first_name}{age_str}, {self.city}"
+        except Exception:
+            return f"{self.last_name} {self.first_name}, {self.city} (возраст не определен)"
 
 
-def read_people_from_file(filename):
+def read_people_from_file(filename: str) -> List[Person]:
     """Читает анкеты из файла и возвращает список людей"""
     try:
         with open(filename, 'r', encoding='utf-8') as file:
@@ -76,48 +85,54 @@ def read_people_from_file(filename):
                 )
                 people.append(person)
 
+        if not people:
+            raise ValueError(f"В файле {filename} не найдено валидных анкет")
+
         return people
 
-    except FileNotFoundError:
-        print(f"Ошибка: файл {filename} не найден")
-        return []
+    except FileNotFoundError as e:
+        raise FileNotFoundError(f"Файл {filename} не найден") from e
+    except PermissionError as e:
+        raise PermissionError(f"Нет прав для чтения файла {filename}") from e
+    except UnicodeDecodeError as e:
+        raise UnicodeDecodeError(f"Ошибка кодировки файла {filename}") from e
     except Exception as e:
-        print(f"Ошибка при чтении файла: {e}")
-        return []
+        raise Exception(f"Ошибка при чтении файла {filename}: {e}") from e
 
 
-def find_oldest_and_youngest(people):
+def find_oldest_and_youngest(people: List[Person]) -> Tuple[Optional[Person], Optional[Person]]:
     """Находит самого старого и самого молодого человека"""
     if not people:
         return None, None
 
-    # Фильтруем людей с валидными датами
-    people_with_dates = [p for p in people if p.get_birth_date_object()]
+    try:
+        # Фильтруем людей с валидными датами
+        people_with_dates = []
+        for person in people:
+            try:
+                if person.get_birth_date_object():
+                    people_with_dates.append(person)
+            except ValueError:
+                # Пропускаем людей с невалидными датами
+                continue
 
-    if not people_with_dates:
-        return None, None
+        if not people_with_dates:
+            return None, None
 
-    # Сортируем по дате рождения
-    people_sorted = sorted(people_with_dates, key=lambda p: p.get_birth_date_object())
+        # Сортируем по дате рождения
+        people_sorted = sorted(people_with_dates, key=lambda p: p.get_birth_date_object())
 
-    oldest = people_sorted[0]  # Первый в отсортированном списке (самый старый)
-    youngest = people_sorted[-1]  # Последний в отсортированном списке (самый молодой)
+        oldest = people_sorted[0]  # Первый в отсортированном списке (самый старый)
+        youngest = people_sorted[-1]  # Последный в отсортированном списке (самый молодой)
 
-    return oldest, youngest
-def main():
-    filename = "data.txt"
+        return oldest, youngest
+    except Exception as e:
+        raise Exception("Ошибка при определении самого старого и самого молодого человека") from e
 
-    print(f"Чтение файла: {filename}")
-    people = read_people_from_file(filename)
 
-    print(f"Найдено анкет: {len(people)}")
-
-    if not people:
-        return
-
-    # Находим самого старого и самого молодого
-    oldest, youngest = find_oldest_and_youngest(people)
-
+def print_results(oldest: Optional[Person], youngest: Optional[Person], input_file: str) -> None:
+    """Печатает результаты в консоль"""
+    print(f"Обработан файл: {input_file}")
     print("\n" + "=" * 40)
     print("РЕЗУЛЬТАТЫ:")
     print("=" * 40)
@@ -127,7 +142,6 @@ def main():
         print(f"  {oldest}")
         print(f"  Дата рождения: {oldest.birth_date}")
 
-
         print(f"\nСамый младший человек:")
         print(f"  {youngest}")
         print(f"  Дата рождения: {youngest.birth_date}")
@@ -136,6 +150,39 @@ def main():
             print("\n⚠️  Это один и тот же человек!")
     else:
         print("\nНе удалось определить возраст людей.")
+
+
+def main() -> None:
+    """Основная функция программы"""
+    try:
+        # Используем фиксированное имя файла вместо аргументов командной строки
+        input_file = "data.txt"
+
+        # Чтение и обработка данных
+        people = read_people_from_file(input_file)
+        print(f"Найдено анкет: {len(people)}")
+
+        oldest, youngest = find_oldest_and_youngest(people)
+
+        # Вывод результатов в консоль
+        print_results(oldest, youngest, input_file)
+
+    except FileNotFoundError as e:
+        print(f"Ошибка: {e}")
+        print("Убедитесь, что файл data.txt находится в той же папке, что и программа")
+        sys.exit(1)
+    except PermissionError as e:
+        print(f"Ошибка доступа: {e}")
+        sys.exit(1)
+    except UnicodeDecodeError as e:
+        print(f"Ошибка кодировки: {e}")
+        sys.exit(1)
+    except ValueError as e:
+        print(f"Ошибка данных: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Неожиданная ошибка: {e}")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
