@@ -1,7 +1,7 @@
-import re
 import sys
 from datetime import datetime
 from typing import List, Optional, Tuple
+import argparse
 
 
 class Person:
@@ -155,17 +155,19 @@ def print_results(oldest: Optional[Person], youngest: Optional[Person], input_fi
 def main() -> None:
     """Основная функция программы"""
     try:
-        # Используем фиксированное имя файла вместо аргументов командной строки
-        input_file = "data.txt"
+        parser = argparse.ArgumentParser(description="Выгрузка пиплов")
+        parser.add_argument('input_file', type=str, help="Вводные данные")
+
+        args = parser.parse_args()
 
         # Чтение и обработка данных
-        people = read_people_from_file(input_file)
+        people = read_people_from_file(args.input_file)
         print(f"Найдено анкет: {len(people)}")
 
         oldest, youngest = find_oldest_and_youngest(people)
 
         # Вывод результатов в консоль
-        print_results(oldest, youngest, input_file)
+        print_results(oldest, youngest, args.input_file)
 
     except FileNotFoundError as e:
         print(f"Ошибка: {e}")
