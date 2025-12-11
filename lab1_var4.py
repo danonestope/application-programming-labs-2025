@@ -15,7 +15,6 @@ class Person:
         self.city = city
 
     def get_birth_date_object(self) -> Optional[datetime]:
-        """Преобразует строку даты в объект datetime"""
         try:
             # Пробуем разные разделители
             for separator in ['/', '.', '-']:
