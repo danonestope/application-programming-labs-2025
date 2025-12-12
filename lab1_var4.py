@@ -53,7 +53,6 @@ class Person:
 
 
 def read_people_from_file(filename: str) -> List[Person]:
-    """Читает анкеты из файла и возвращает список людей"""
     try:
         with open(filename, 'r', encoding='utf-8') as file:
             content = file.read()
