@@ -1,7 +1,8 @@
 import sys
+import argparse
+import re
 from datetime import datetime
 from typing import List, Optional, Tuple
-import argparse
 
 
 class Person:
@@ -16,11 +17,13 @@ class Person:
 
     def get_birth_date_object(self) -> Optional[datetime]:
         try:
-            # Пробуем разные разделители
-            for separator in ['/', '.', '-']:
-                if separator in self.birth_date:
-                    day, month, year = map(int, self.birth_date.split(separator))
-                    return datetime(year, month, day)
+            # Паттерн для даты в форматах ДД/ММ/ГГГГ, ДД.ММ.ГГГГ, ДД-ММ-ГГГГ
+            pattern = r'(\d{1,2})[/\.\-](\d{1,2})[/\.\-](\d{4})'
+            match = re.match(pattern, self.birth_date)
+            
+            if match:
+                day, month, year = map(int, match.groups())
+                return datetime(year, month, day)
             return None
         except (ValueError, AttributeError) as e:
             raise ValueError(f"Неверный формат даты: {self.birth_date}") from e
@@ -64,11 +67,14 @@ def read_people_from_file(filename: str) -> List[Person]:
             if not profile.strip():
                 continue
 
-            # Ищем данные в формате "Поле: значение"
             data = {}
+            # Паттерн для поиска "Поле: значение" (игнорируем пробелы вокруг двоеточия)
+            pattern = r'^\s*([^:\n]+?)\s*:\s*(.+?)\s*$'
+            
             for line in profile.split('\n'):
-                if ':' in line:
-                    key, value = line.split(':', 1)
+                match = re.match(pattern, line)
+                if match:
+                    key, value = match.groups()
                     data[key.strip().lower()] = value.strip()
 
             # Создаем человека если есть все необходимые поля
